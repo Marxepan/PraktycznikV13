@@ -1,6 +1,6 @@
 export type Level = 'easy' | 'medium' | 'hard' | 'master';
 export type SymbolSet = 'animals' | 'fruits' | 'objects';
-export type Theme = 'light' | 'dark';
+export type ColorScheme = 'light' | 'dark';
 export type MasterMode = 'numbers' | 'patterns';
 
 export interface CardData {
@@ -19,8 +19,10 @@ export interface LevelConfig {
 }
 
 export interface SettingsContextType {
-  theme: Theme;
-  toggleTheme: () => void;
+  colorScheme: ColorScheme;
+  setColorScheme: (scheme: ColorScheme) => void;
+  themeName: string;
+  setThemeName: (name: string) => void;
   symbolSet: SymbolSet;
   setSymbolSet: (set: SymbolSet) => void;
   soundEnabled: boolean;

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Button from './Button';
 import { useSettings } from '../context/SettingsContext';
 import { SYMBOLS } from '../constants';
-import type { SymbolSet } from '../types';
+import { THEMES } from '../utils/themes';
+import type { SymbolSet, ColorScheme } from '../types';
 
 // --- SVG Icon Components (New, more consistent style) ---
 
@@ -76,6 +77,37 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ label, enabled, onChange, e
     </div>
 );
 
+// --- New ThemeSelectorButton component ---
+
+interface ThemeSelectorButtonProps {
+    themeName: string;
+    displayName: string;
+    isActive: boolean;
+    onClick: () => void;
+}
+
+const ThemeSelectorButton: React.FC<ThemeSelectorButtonProps> = ({ themeName, displayName, isActive, onClick }) => {
+    const theme = THEMES[themeName];
+    if (!theme) return null;
+
+    const lightPrimary = `rgb(${theme.light['--color-primary-500']})`;
+    const darkPrimary = `rgb(${theme.dark['--color-primary-500']})`;
+
+    return (
+        <button
+            onClick={onClick}
+            aria-label={`Wybierz motyw ${displayName}`}
+            className={`flex flex-col items-center justify-center gap-2 p-2 rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-offset-2 focus:ring-offset-[rgb(var(--color-card-bg))] ${isActive ? 'ring-2 ring-[rgb(var(--color-primary-500))]' : 'focus:ring-2 ring-transparent'}`}
+        >
+            <div className="w-10 h-10 rounded-full overflow-hidden flex shadow-inner">
+                <div className="w-1/2 h-full" style={{ backgroundColor: lightPrimary }}></div>
+                <div className="w-1/2 h-full" style={{ backgroundColor: darkPrimary }}></div>
+            </div>
+            <span className={`font-semibold text-xs transition-colors ${isActive ? 'text-[rgb(var(--color-primary-500))]' : 'text-[rgb(var(--color-muted-text))]'}`}>{displayName}</span>
+        </button>
+    );
+};
+
 
 // --- Card Set Button Component ---
 
@@ -103,7 +135,8 @@ const CardSetButton: React.FC<CardSetButtonProps> = ({ symbol, label, isActive, 
 const Settings: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { 
-        theme, toggleTheme, 
+        colorScheme, setColorScheme,
+        themeName, setThemeName,
         soundEnabled, toggleSound, 
         symbolSet, setSymbolSet 
     } = useSettings();
@@ -113,6 +146,10 @@ const Settings: React.FC = () => {
         { id: 'fruits', symbol: '🍎', label: 'Owoce' },
         { id: 'objects', symbol: '🚗', label: 'Obiekty' }
     ];
+
+    const toggleColorScheme = () => {
+        setColorScheme(colorScheme === 'light' ? 'dark' : 'light');
+    };
 
     return (
         <>
@@ -143,16 +180,31 @@ const Settings: React.FC = () => {
                         </div>
                         
                         <div className="space-y-6">
-                            <div className="space-y-1 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
-                               <ToggleSwitch
+                            <div className="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                                <h3 className="font-semibold text-center mb-3 text-[rgb(var(--color-text))]">Wygląd</h3>
+                                <div className="grid grid-cols-4 gap-2 mb-4">
+                                     {Object.values(THEMES).map(theme => (
+                                        <ThemeSelectorButton
+                                            key={theme.name}
+                                            themeName={theme.name}
+                                            displayName={theme.displayName}
+                                            isActive={themeName === theme.name}
+                                            onClick={() => setThemeName(theme.name)}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="border-t border-slate-200 dark:border-slate-700/50 my-1"></div>
+                                <ToggleSwitch
                                     label="Tryb Ciemny"
-                                    enabled={theme === 'dark'}
-                                    onChange={toggleTheme}
+                                    enabled={colorScheme === 'dark'}
+                                    onChange={toggleColorScheme}
                                     enabledIcon={<MoonIcon className="w-4 h-4 text-slate-800" />}
                                     disabledIcon={<SunIcon className="w-4 h-4 text-slate-800" />}
                                 />
-                                <div className="border-t border-slate-200 dark:border-slate-700/50"></div>
-                                <ToggleSwitch
+                            </div>
+
+                             <div className="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
+                               <ToggleSwitch
                                     label="Dźwięk"
                                     enabled={soundEnabled}
                                     onChange={toggleSound}
